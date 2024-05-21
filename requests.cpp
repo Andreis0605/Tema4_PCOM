@@ -10,7 +10,7 @@
 #include "requests.hpp"
 
 char *compute_get_request(char *host, char *url, char *query_params,
-                          char **cookies, int cookies_count)
+                          char *cookies, char *token)
 {
     char *message = (char *)calloc(BUFLEN, sizeof(char));
     char *line = (char *)calloc(LINELEN, sizeof(char));
@@ -35,12 +35,13 @@ char *compute_get_request(char *host, char *url, char *query_params,
     if (cookies != NULL)
     {
         strcpy(line, "Cookie: ");
-        for (int i = 0; i < cookies_count; i++)
-        {
-            strcat(line, cookies[i]);
-            if (i != cookies_count - 1)
-                strcat(line, "; ");
-        }
+        strcat(line, cookies);
+        compute_message(message, line);
+    }
+
+    if (token != NULL)
+    {
+        sprintf(line, "Authorization: Bearer %s", token);
         compute_message(message, line);
     }
 
@@ -50,7 +51,7 @@ char *compute_get_request(char *host, char *url, char *query_params,
 }
 
 char *compute_post_request(char *host, char *url, char *content_type, const char *body_data,
- char **cookies, int cookies_count)
+                           char **cookies, int cookies_count)
 {
     char *message = (char *)calloc(BUFLEN, sizeof(char));
     char *line = (char *)calloc(LINELEN, sizeof(char));
