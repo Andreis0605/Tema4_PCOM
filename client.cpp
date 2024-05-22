@@ -5,7 +5,7 @@
 #include "requests.hpp"
 #include "buffer.hpp"
 
-//todo: check if the input is valid
+// todo: check if the input is valid
 
 using namespace std;
 using json = nlohmann::json;
@@ -71,12 +71,13 @@ int main()
             cout << "password=";
             cin.getline(password, 500);
 
-            cout << username << '\n' << password << '\n';
+            /*cout << username << '\n'
+                 << password << '\n';*/
 
             // check if the input is valid
             if (strchr(username, ' ') || strchr(password, ' '))
             {
-                cout << "Nu se pot folosi spatii in username sau parola" << '\n';
+                cout << "ERROR: spaces not allowed in username or password" << '\n';
                 continue;
             }
 
@@ -95,8 +96,6 @@ int main()
             int nr = get_error_code(response);
             json response_json = get_json_response(response);
 
-            cout << response << '\n';
-
             if (nr / 100 == 2)
             {
                 cout << "SUCCES: user registered" << '\n';
@@ -113,21 +112,23 @@ int main()
             // check if the user is not already connected
             if (cookie != NULL || jwt != NULL)
             {
-                cout << "User already logged in\n";
+                cout << "ERROR: User already logged in" <<'\n';
                 continue;
             }
 
+            cin.get();
+
             // read the data from the input
-            char username[200], password[200];
+            char username[500], password[500];
             cout << "username=";
-            cin >> username;
+            cin.getline(username, 500);
             cout << "password=";
-            cin >> password;
+            cin.getline(password, 500);
 
             // check if the input is valid
             if (strchr(username, ' ') || strchr(password, ' '))
             {
-                cout << "Nu se pot folosi spatii in username sau parola" << '\n';
+                cout << "ERROR: spaces not allowed in username or password" << '\n';
                 continue;
             }
 
@@ -163,6 +164,13 @@ int main()
 
         if (strstr(stdin_buffer, "enter_library"))
         {
+            if (cookie == NULL)
+            {
+                cout << "ERROR: Must be logged in order to acces the library";
+                cout << '\n';
+                continue;
+            }
+
             int sockfd = open_connection_to_server();
             char *message =
                 compute_get_request("34.246.184.49:8080",
@@ -226,7 +234,7 @@ int main()
             {
                 if (id[i] < '0' || id[i] > '9' || id[i] == ' ')
                 {
-                    cout << "id must contain only numbers" << '\n';
+                    cout << "ERROR: id must contain only numbers" << '\n';
                     valid = false;
                 }
             }
@@ -275,9 +283,19 @@ int main()
             {
                 if (page_count[i] < '0' || page_count[i] > '9' || page_count[i] == ' ')
                 {
-                    cout << "page_count must contain only numbers" << '\n';
+                    cout << "ERROR: page_count must contain only numbers" << '\n';
                     valid = false;
                 }
+            }
+
+            if (strlen(title) == 0 ||
+                strlen(author) == 0 ||
+                strlen(genre) == 0 ||
+                strlen(publisher) == 0 ||
+                strlen(page_count) == 0)
+            {
+                cout << "ERROR: All fields must contain information" << '\n';
+                valid = false;
             }
 
             if (!valid)
@@ -296,6 +314,8 @@ int main()
             send_to_server(sockfd, message);
             char *response = receive_from_server(sockfd);
             close_connection_to_server(sockfd);
+
+            //cout << response;
 
             int nr = get_error_code(response);
             if (nr / 100 == 2)
