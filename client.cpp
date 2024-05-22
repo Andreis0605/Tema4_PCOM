@@ -5,6 +5,8 @@
 #include "requests.hpp"
 #include "buffer.hpp"
 
+//todo: check if the input is valid
+
 using namespace std;
 using json = nlohmann::json;
 
@@ -60,12 +62,16 @@ int main()
         // process the register user request
         if (strstr(stdin_buffer, "register"))
         {
+            cin.get();
+
             // read the data from the input
-            char username[200], password[200];
+            char username[500], password[500];
             cout << "username=";
-            cin >> username;
+            cin.getline(username, 500);
             cout << "password=";
-            cin >> password;
+            cin.getline(password, 500);
+
+            cout << username << '\n' << password << '\n';
 
             // check if the input is valid
             if (strchr(username, ' ') || strchr(password, ' '))
@@ -88,6 +94,8 @@ int main()
 
             int nr = get_error_code(response);
             json response_json = get_json_response(response);
+
+            cout << response << '\n';
 
             if (nr / 100 == 2)
             {
@@ -362,7 +370,7 @@ int main()
             close_connection_to_server(sockfd);
 
             int nr = get_error_code(response);
-            if(nr / 100 == 2)
+            if (nr / 100 == 2)
             {
                 cout << "SUCCES: user logged out" << '\n';
                 cookie = NULL;
@@ -372,7 +380,6 @@ int main()
             {
                 cout << "ERROR: could not log user out" << '\n';
             }
-
         }
     }
     return 0;
