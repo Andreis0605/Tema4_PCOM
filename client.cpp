@@ -134,18 +134,18 @@ int main()
                 compute_post_request("34.246.184.49:8080",
                                      "/api/v1/tema/auth/login",
                                      "application/json",
-                                     j.dump().c_str(), NULL, 0);
+                                     j.dump().c_str(), NULL, NULL);
 
             send_to_server(sockfd, message);
             char *response = receive_from_server(sockfd);
             close_connection_to_server(sockfd);
             int nr = get_error_code(response);
-            json response_json = get_json_response(response);
-            cookie = get_cookie(response);
 
             if (nr / 100 == 2)
             {
                 cout << "SUCCES: user logged in" << '\n';
+                json response_json = get_json_response(response);
+                cookie = get_cookie(response);
             }
             else
             {
@@ -200,10 +200,180 @@ int main()
             int nr = get_error_code(response);
             json response_json = json::parse(strchr(response, '['));
 
-            cout << response_json << '\n';
+            cout << response_json.dump(4) << '\n';
+
+            continue;
         }
 
-        
+        if (strstr(stdin_buffer, "get_book"))
+        {
+            char id[200];
+            cout << "id=";
+            cin >> id;
+
+            // check if the input is vali
+            int id_len = strlen(id);
+            bool valid = true;
+            for (int i = 0; i < id_len && valid; i++)
+            {
+                if (id[i] < '0' || id[i] > '9' || id[i] == ' ')
+                {
+                    cout << "id must contain only numbers" << '\n';
+                    valid = false;
+                }
+            }
+
+            if (!valid)
+                continue;
+
+            int id_int = atoi(id);
+
+            int sockfd = open_connection_to_server();
+
+            char *book = (char *)malloc(500);
+            strcpy(book, "/api/v1/tema/library/books/");
+            strcat(book, id);
+
+            char *message =
+                compute_get_request("34.246.184.49:8080", book, NULL, cookie, jwt);
+            send_to_server(sockfd, message);
+            char *response = receive_from_server(sockfd);
+            close_connection_to_server(sockfd);
+
+            json response_json = get_json_response(response);
+
+            cout << response_json.dump(4) << '\n';
+        }
+
+        if (strstr(stdin_buffer, "add_book"))
+        {
+            cin.get();
+            char title[500], author[500], genre[500], publisher[500], page_count[500];
+            cout << "title=";
+            cin.getline(title, 500);
+            cout << "author=";
+            cin.getline(author, 500);
+            cout << "genre=";
+            cin.getline(genre, 500);
+            cout << "publisher=";
+            cin.getline(publisher, 500);
+            cout << "page_count=";
+            cin.getline(page_count, 500);
+
+            // check if the input is valid
+            int page_count_len = strlen(page_count);
+            bool valid = true;
+            for (int i = 0; i < page_count_len && valid; i++)
+            {
+                if (page_count[i] < '0' || page_count[i] > '9' || page_count[i] == ' ')
+                {
+                    cout << "page_count must contain only numbers" << '\n';
+                    valid = false;
+                }
+            }
+
+            if (!valid)
+                continue;
+
+            json j;
+            j = {
+                {"title", title},
+                {"author", author},
+                {"genre", genre},
+                {"publisher", publisher},
+                {"page_count", atoi(page_count)}};
+
+            int sockfd = open_connection_to_server();
+            char *message = compute_post_request("34.246.184.49:8080", "/api/v1/tema/library/books", "application/json", j.dump().c_str(), cookie, jwt);
+            send_to_server(sockfd, message);
+            char *response = receive_from_server(sockfd);
+            close_connection_to_server(sockfd);
+
+            int nr = get_error_code(response);
+            if (nr / 100 == 2)
+            {
+                cout << "SUCCES: book added to the library" << '\n';
+            }
+            else
+            {
+                cout << "ERROR: could not add book to the library" << '\n';
+            }
+        }
+
+        if (strstr(stdin_buffer, "delete_book"))
+        {
+            char id[500];
+            cout << "id=";
+            cin >> id;
+
+            // check if the input is vali
+            int id_len = strlen(id);
+            bool valid = true;
+            for (int i = 0; i < id_len && valid; i++)
+            {
+                if (id[i] < '0' || id[i] > '9' || id[i] == ' ')
+                {
+                    cout << "id must contain only numbers" << '\n';
+                    valid = false;
+                }
+            }
+
+            if (!valid)
+                continue;
+
+            int sockfd = open_connection_to_server();
+
+            char *book = (char *)malloc(500);
+            strcpy(book, "/api/v1/tema/library/books/");
+            strcat(book, id);
+
+            char *message =
+                compute_delete_request("34.246.184.49:8080", book, NULL, cookie, jwt);
+            send_to_server(sockfd, message);
+            char *response = receive_from_server(sockfd);
+            close_connection_to_server(sockfd);
+
+            int nr = get_error_code(response);
+
+            if (nr / 100 == 2)
+            {
+                cout << "SUCCES: book deleted from the library" << '\n';
+            }
+            else
+            {
+                cout << "ERROR: could not delete book from the library" << '\n';
+            }
+        }
+
+        if (strstr(stdin_buffer, "logout"))
+        {
+            if (cookie == NULL)
+            {
+                cout << "ERROR: no user logged in" << '\n';
+                continue;
+            }
+
+            int sockfd = open_connection_to_server();
+
+            char *message =
+                compute_get_request("34.246.184.49:8080", "/api/v1/tema/auth/logout", NULL, cookie, jwt);
+            send_to_server(sockfd, message);
+            char *response = receive_from_server(sockfd);
+            close_connection_to_server(sockfd);
+
+            int nr = get_error_code(response);
+            if(nr / 100 == 2)
+            {
+                cout << "SUCCES: user logged out" << '\n';
+                cookie = NULL;
+                jwt = NULL;
+            }
+            else
+            {
+                cout << "ERROR: could not log user out" << '\n';
+            }
+
+        }
     }
     return 0;
 }
