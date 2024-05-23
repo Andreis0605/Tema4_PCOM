@@ -19,6 +19,8 @@ void compute_message(char *message, const char *line)
     strcat(message, "\r\n");
 }
 
+// modified this function from the lab in order to
+// have the the server address and port hardcoded
 // function that opens a connection to the server
 int open_connection_to_server()
 {
@@ -50,7 +52,6 @@ int open_connection_to_server()
     return sockfd;
 }
 
-// function that closes the connection to the server
 void close_connection_to_server(int sockfd)
 {
     close(sockfd);

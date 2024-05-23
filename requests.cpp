@@ -9,22 +9,15 @@
 #include "helpers.hpp"
 #include "requests.hpp"
 
-char *compute_get_request(char *host, char *url, char *query_params,
+// function that generates a message for a GET request
+char *compute_get_request(char *host, char *url,
                           char *cookies, char *token)
 {
     char *message = (char *)calloc(BUFLEN, sizeof(char));
     char *line = (char *)calloc(LINELEN, sizeof(char));
 
     // Step 1: write the method name, URL, request params (if any) and protocol type
-    if (query_params != NULL)
-    {
-        sprintf(line, "GET %s?%s HTTP/1.1", url, query_params);
-    }
-    else
-    {
-        sprintf(line, "GET %s HTTP/1.1", url);
-    }
-
+    sprintf(line, "GET %s HTTP/1.1", url);
     compute_message(message, line);
 
     // Step 2: add the host
@@ -38,7 +31,6 @@ char *compute_get_request(char *host, char *url, char *query_params,
         strcat(line, cookies);
         compute_message(message, line);
     }
-
     if (token != NULL)
     {
         sprintf(line, "Authorization: Bearer %s", token);
@@ -69,13 +61,12 @@ char *compute_post_request(char *host, char *url, char *content_type, const char
             in order to write Content-Length you must first compute the message size
     */
     strcpy(body_data_buffer, body_data);
-
     sprintf(line, "Content-Type: %s", content_type);
     compute_message(message, line);
-
     sprintf(line, "Content-Length: %lu", strlen(body_data_buffer));
     compute_message(message, line);
 
+    // Step 3 (optional): add headers and/or cookies, according to the protocol format
     if (cookies != NULL)
     {
         strcpy(line, "Cookie: ");
@@ -88,7 +79,7 @@ char *compute_post_request(char *host, char *url, char *content_type, const char
         sprintf(line, "Authorization: Bearer %s", token);
         compute_message(message, line);
     }
-    
+
     // Step 5: add new line at end of header
     compute_message(message, "");
 
@@ -100,22 +91,14 @@ char *compute_post_request(char *host, char *url, char *content_type, const char
     return message;
 }
 
-char *compute_delete_request(char *host, char *url, char *query_params,
-                          char *cookies, char *token)
+// function that creates a delete request to send to the server
+char *compute_delete_request(char *host, char *url, char *cookies, char *token)
 {
     char *message = (char *)calloc(BUFLEN, sizeof(char));
     char *line = (char *)calloc(LINELEN, sizeof(char));
 
     // Step 1: write the method name, URL, request params (if any) and protocol type
-    if (query_params != NULL)
-    {
-        sprintf(line, "DELETE %s?%s HTTP/1.1", url, query_params);
-    }
-    else
-    {
-        sprintf(line, "DELETE %s HTTP/1.1", url);
-    }
-
+    sprintf(line, "DELETE %s HTTP/1.1", url);
     compute_message(message, line);
 
     // Step 2: add the host
@@ -129,7 +112,6 @@ char *compute_delete_request(char *host, char *url, char *query_params,
         strcat(line, cookies);
         compute_message(message, line);
     }
-
     if (token != NULL)
     {
         sprintf(line, "Authorization: Bearer %s", token);

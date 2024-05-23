@@ -1,4 +1,9 @@
-all: client
+.PHONY: build run clean
+
+run: client
+	./client
+
+build: client
 
 client: client.o requests.o helpers.o buffer.o
 	g++ client.o requests.o helpers.o buffer.o -o client -Wall
