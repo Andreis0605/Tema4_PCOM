@@ -81,14 +81,6 @@ int main()
         // process the register user request
         if (strstr(stdin_buffer, "register"))
         {
-
-            // check if a user is not already connected
-            if (cookie != NULL || jwt != NULL)
-            {
-                cout << "ERROR: A user is already logged in" << '\n';
-                continue;
-            }
-
             // get the newline character left in the buffer
             cin.get();
 
@@ -317,13 +309,22 @@ int main()
             // close the connection to the server
             close_connection_to_server(sockfd);
 
-            // get the JSON part from the response
-            char *json_end = strchr(response, ']');
-            *(json_end + 1) = '\0';
-            json response_json = json::parse(strchr(response, '['));
+            int nr = get_error_code(response);
+            if (nr / 100 == 2)
+            {
+                cout << "SUCCES: got the books from the library:" << '\n';
+                // get the JSON part from the response
+                char *json_end = strchr(response, ']');
+                *(json_end + 1) = '\0';
+                json response_json = json::parse(strchr(response, '['));
 
-            // print the JSON part
-            cout << response_json.dump(4) << '\n';
+                // print the JSON part
+                cout << response_json.dump(4) << '\n';
+            }
+            else
+            {
+                cout << "ERROR: could not get the books from the library" << '\n';
+            }
 
             // free the url
             free(url);
@@ -391,11 +392,20 @@ int main()
             // close the connection to the server
             close_connection_to_server(sockfd);
 
-            // get the JSON part from the response
-            json response_json = get_json_response(response);
+            int nr = get_error_code(response);
+            if (nr / 100 == 2)
+            {
+                cout << "SUCCES: got the book from the library:" << '\n';
+                // get the JSON part from the response
+                json response_json = get_json_response(response);
 
-            // print the JSON part
-            cout << response_json.dump(4) << '\n';
+                // print the JSON part
+                cout << response_json.dump(4) << '\n';
+            }
+            else
+            {
+                cout << "ERROR: could not get the book from the library" << '\n';
+            }
 
             // free the url
             free(book);

@@ -26,8 +26,6 @@
 
 ## Clientul
 
-
-
 ### Functii definite in client
 
 - `char *get_cookie(char *response)`
@@ -42,6 +40,50 @@
 
     > Funtie care extrage un json din raspunsul primit de la server. Intoarce un obiect json obtinut prin parsarea mesajului sau un obiect json vid in caz ca nu exista un json in raspunsul serverului.
 
+### Biblioteca de JSON folosita
+
+> Am ales sa folosesc biblioteca nlohmann pentru lucrul cu JSON, deoarece a fost recomandata in cerinta si datorita faptului ca este usor de inclus in program (un singur fisier: "json.hpp").
+
 ### Flow-ul clientului
 
 > Clientul asteapta input de la utilizator. Pentru orice actiune (mai putin exit, la care pur si simplu se inchide) acesta deschide o conexiune cu server-ul, trimite un mesaj, asteapta un raspuns si inchide conexiunea. Apoi proceseaza raspunsul primit de la server.
+
+### Functionalitati implementate in client
+
+- #### Register
+
+    > Pentru aceasta functionalitate citesc datele introduse de utilizator si verific sa fie valide. Apoi construiesc un obiect json care contine username-ul si parola. Dupa aceea, deschid o conexiune catre server, construiesc mesajul, il trimit, primesc raspunsul si inchid conexiunea. La final, verific codul returnat de server.
+
+- #### Login
+
+    > Pentru aceasta functionalitate verific daca nu am un utilizator deja logat. Daca am, printez eroare. Daca nu, citesc datele de la tastatura si verific sa fie valide. Apoi construiesc un obiect json cu username-ul si parola. In continuare, deschid o conexiune catre server, construiesc mesajul, il trimit, primesc raspunsul si inchid conexiunea. La final, verific codul returnat de server. Daca am un cod bun, extrag cookie-ul de sesiune din mesaj.
+
+- #### Enter_library
+
+    > Pentru acesasta functionalitate verific daca am un user logat. Daca nu, printez eroare. Daca da, deschid o conexiune catre server, construiesc mesajul, il trimit, primesc raspunsul si inchid conexiunea. In continuare, verific codul returnat de server. Daca am un cod bun, extrag token-ul jwt din mesaj.
+
+- #### Get_books
+
+    > Pentru aceasta functionalitate verifc daca am cookie-ul de sesiune si token-ul jwt. Daca nu, printez eroare. Daca da, deschid o conexiune catre server, construiesc mesajul, il trimit, primesc raspunsul si inchid conexiunea. La final, verific codul returntat de server. Daca am un cod bun, extrag JSON-ul din raspuns si il afisez.
+
+- #### Get_book
+
+    > Pentru aceasta functionalitate verifc daca am cookie-ul de sesiune si token-ul jwt. Daca nu, printez eroare. Daca da, citesc datele introduse de utilizator si verific sa fie valide. In continuare, deschid o conexiune catre server, construiesc mesajul, il trimit, primesc raspunsul si inchid conexiunea. Apoi verific codul returnat de server.  Daca am un cod bun, extrag JSON-ul din raspuns si il afisez.
+
+- #### Add_book
+
+    > Pentru aceasta functionalitate verifc daca am cookie-ul de sesiune si token-ul jwt. Daca nu, printez eroare. Daca da, citesc datele introduse de utilizator si verific sa fie valide. In continuare, deschid o conexiune catre server, construiesc mesajul, il trimit, primesc raspunsul si inchid conexiunea. Apoi verific codul returnat de server.
+
+- #### Delete_book
+
+    > Pentru aceasta functionalitate verifc daca am cookie-ul de sesiune si token-ul jwt. Daca nu, printez eroare. Daca da, citesc datele introduse de utilizator si verific sa fie valide. In continuare, deschid o conexiune catre server, construiesc mesajul, il trimit, primesc raspunsul si inchid conexiunea. Apoi verific codul returnat de server.
+
+- #### Logout
+
+    > Pentru aceasta functionalitate verifc daca am cookie-ul de sesiune si token-ul jwt. Daca nu, printez eroare. Daca da, deschid o conexiune catre server, construiesc mesajul, il trimit, primesc raspunsul si inchid conexiunea. La final, verific codul returntat de server. Daca am un cod bun, sterg cookie-ul si token-ul.
+
+- #### Exit
+
+    > Pentru aceasta functionalitate sterg cookie-ul si token-ul pe care il am si opresc bucla in care citest si interpretez comenzi.
+
+
