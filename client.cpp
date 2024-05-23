@@ -47,6 +47,10 @@ int main()
     char stdin_buffer[200];
     char *jwt = NULL;
     char *cookie = NULL;
+    char *host = (char *)calloc(500, sizeof(char));
+    strcpy(host, "34.246.184.49:8080");
+    char *content_type = (char *)calloc(500, sizeof(char));
+    strcpy(content_type, "application/json");
 
     while (true)
     {
@@ -88,7 +92,11 @@ int main()
                 {"password", password}};
 
             int sockfd = open_connection_to_server();
-            char *message = compute_post_request("34.246.184.49:8080", "/api/v1/tema/auth/register", "application/json", j.dump().c_str(), NULL, 0);
+
+            char *url = (char *)malloc(500);
+            strcpy(url, "/api/v1/tema/auth/register");
+
+            char *message = compute_post_request(host, url, content_type, j.dump().c_str(), NULL, 0);
             send_to_server(sockfd, message);
             char *response = receive_from_server(sockfd);
             close_connection_to_server(sockfd);
@@ -104,6 +112,8 @@ int main()
             {
                 cout << "ERROR: user already exists" << '\n';
             }
+
+            free(url);
         }
 
         // process the login user request
@@ -112,7 +122,7 @@ int main()
             // check if the user is not already connected
             if (cookie != NULL || jwt != NULL)
             {
-                cout << "ERROR: User already logged in" <<'\n';
+                cout << "ERROR: User already logged in" << '\n';
                 continue;
             }
 
@@ -139,10 +149,14 @@ int main()
                 {"password", password}};
 
             int sockfd = open_connection_to_server();
+
+            char *url = (char *)malloc(500);
+            strcpy(url, "/api/v1/tema/auth/login");
+
             char *message =
-                compute_post_request("34.246.184.49:8080",
-                                     "/api/v1/tema/auth/login",
-                                     "application/json",
+                compute_post_request(host,
+                                     url,
+                                     content_type,
                                      j.dump().c_str(), NULL, NULL);
 
             send_to_server(sockfd, message);
@@ -160,6 +174,7 @@ int main()
             {
                 cout << "ERROR: invalid username or password" << '\n';
             }
+            free(url);
         }
 
         if (strstr(stdin_buffer, "enter_library"))
@@ -172,9 +187,12 @@ int main()
             }
 
             int sockfd = open_connection_to_server();
+
+            char *url = (char *)malloc(500);
+            strcpy(url, "/api/v1/tema/library/access");
             char *message =
-                compute_get_request("34.246.184.49:8080",
-                                    "/api/v1/tema/library/access", NULL,
+                compute_get_request(host,
+                                    url, NULL,
                                     cookie, jwt);
 
             send_to_server(sockfd, message);
@@ -195,14 +213,19 @@ int main()
             {
                 cout << "ERROR: acces denied to the library" << '\n';
             }
+            free(url);
         }
 
         if (strstr(stdin_buffer, "get_books"))
         {
             int sockfd = open_connection_to_server();
+
+            char *url = (char *)malloc(500);
+            strcpy(url, "/api/v1/tema/library/books");
+
             char *message =
-                compute_get_request("34.246.184.49:8080",
-                                    "/api/v1/tema/library/books", NULL,
+                compute_get_request(host,
+                                    url, NULL,
                                     cookie, jwt);
             send_to_server(sockfd, message);
             char *response = receive_from_server(sockfd);
@@ -211,12 +234,11 @@ int main()
             char *json_end = strchr(response, ']');
             *(json_end + 1) = '\0';
 
-            // cout << response << '\n';
-
-            int nr = get_error_code(response);
             json response_json = json::parse(strchr(response, '['));
 
             cout << response_json.dump(4) << '\n';
+
+            free(url);
 
             continue;
         }
@@ -242,8 +264,6 @@ int main()
             if (!valid)
                 continue;
 
-            int id_int = atoi(id);
-
             int sockfd = open_connection_to_server();
 
             char *book = (char *)malloc(500);
@@ -251,7 +271,7 @@ int main()
             strcat(book, id);
 
             char *message =
-                compute_get_request("34.246.184.49:8080", book, NULL, cookie, jwt);
+                compute_get_request(host, book, NULL, cookie, jwt);
             send_to_server(sockfd, message);
             char *response = receive_from_server(sockfd);
             close_connection_to_server(sockfd);
@@ -259,6 +279,7 @@ int main()
             json response_json = get_json_response(response);
 
             cout << response_json.dump(4) << '\n';
+            free(book);
         }
 
         if (strstr(stdin_buffer, "add_book"))
@@ -310,12 +331,16 @@ int main()
                 {"page_count", atoi(page_count)}};
 
             int sockfd = open_connection_to_server();
-            char *message = compute_post_request("34.246.184.49:8080", "/api/v1/tema/library/books", "application/json", j.dump().c_str(), cookie, jwt);
+
+            char *url = (char *)malloc(500);
+            strcpy(url, "/api/v1/tema/library/books");
+
+            char *message = compute_post_request(host, url, content_type, j.dump().c_str(), cookie, jwt);
             send_to_server(sockfd, message);
             char *response = receive_from_server(sockfd);
             close_connection_to_server(sockfd);
 
-            //cout << response;
+            // cout << response;
 
             int nr = get_error_code(response);
             if (nr / 100 == 2)
@@ -326,6 +351,7 @@ int main()
             {
                 cout << "ERROR: could not add book to the library" << '\n';
             }
+            free(url);
         }
 
         if (strstr(stdin_buffer, "delete_book"))
@@ -356,7 +382,7 @@ int main()
             strcat(book, id);
 
             char *message =
-                compute_delete_request("34.246.184.49:8080", book, NULL, cookie, jwt);
+                compute_delete_request(host, book, NULL, cookie, jwt);
             send_to_server(sockfd, message);
             char *response = receive_from_server(sockfd);
             close_connection_to_server(sockfd);
@@ -383,8 +409,11 @@ int main()
 
             int sockfd = open_connection_to_server();
 
+            char *url = (char *)malloc(500);
+            strcpy(url, "/api/v1/tema/auth/logout");
+
             char *message =
-                compute_get_request("34.246.184.49:8080", "/api/v1/tema/auth/logout", NULL, cookie, jwt);
+                compute_get_request(host, url, NULL, cookie, jwt);
             send_to_server(sockfd, message);
             char *response = receive_from_server(sockfd);
             close_connection_to_server(sockfd);
@@ -400,7 +429,10 @@ int main()
             {
                 cout << "ERROR: could not log user out" << '\n';
             }
+            free(url);
         }
     }
+
+    free(host);
     return 0;
 }
